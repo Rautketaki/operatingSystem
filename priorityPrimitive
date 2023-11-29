@@ -1,0 +1,51 @@
+#include <stdio.h>
+
+struct Process {
+    int id;
+    int burstTime;
+    int priority;
+};
+
+void priorityPreemptiveScheduling(struct Process processes[], int n) {
+    int currentTime = 0;
+    int completedProcesses = 0;
+
+    while (completedProcesses < n) {
+        int highestPriorityIndex = -1;
+        int highestPriority = __INT_MAX__;
+
+        for (int i = 0; i < n; i++) {
+            if (processes[i].burstTime > 0 && processes[i].priority < highestPriority) {
+                highestPriority = processes[i].priority;
+                highestPriorityIndex = i;
+            }
+        }
+
+        if (highestPriorityIndex == -1) {
+            currentTime++;
+        } else {
+            printf("Executing process %d for time unit %d\n", processes[highestPriorityIndex].id, currentTime);
+            processes[highestPriorityIndex].burstTime--;
+            currentTime++;
+
+            if (processes[highestPriorityIndex].burstTime == 0) {
+                completedProcesses++;
+            }
+        }
+    }
+}
+
+int main() {
+    struct Process processes[] = {
+        {1, 6, 2},
+        {2, 8, 1},
+        {3, 7, 3},
+        {4, 3, 4}
+    };
+
+    int n = sizeof(processes) / sizeof(processes[0]);
+
+    priorityPreemptiveScheduling(processes, n);
+
+    return 0;
+}
