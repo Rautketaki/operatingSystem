@@ -166,3 +166,80 @@ int main() {
 
     return 0;
 }
+
+//reader writer
+#include <stdio.h>
+#include <pthread.h>
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t writeMutex = PTHREAD_MUTEX_INITIALIZER;
+
+int readersCount = 0;
+int sharedData = 0;
+
+void* reader(void* arg) {
+    while (1) {
+        pthread_mutex_lock(&mutex);
+        readersCount++;
+        if (readersCount == 1) {
+            // First reader, lock writeMutex to prevent writers
+            pthread_mutex_lock(&writeMutex);
+        }
+        pthread_mutex_unlock(&mutex);
+
+        // Read shared data
+        printf("Reader %d read: %d\n", (int)arg, sharedData);
+
+        pthread_mutex_lock(&mutex);
+        readersCount--;
+        if (readersCount == 0) {
+            // Last reader, release writeMutex to allow writers
+            pthread_mutex_unlock(&writeMutex);
+        }
+        pthread_mutex_unlock(&mutex);
+
+        // Sleep to simulate reading
+        usleep(1000000); // Sleep for 1 second
+    }
+
+    return NULL;
+}
+
+void* writer(void* arg) {
+    while (1) {
+        pthread_mutex_lock(&writeMutex);
+        
+        // Write to shared data
+        sharedData++;
+        printf("Writer %d wrote: %d\n", (int)arg, sharedData);
+
+        pthread_mutex_unlock(&writeMutex);
+
+        // Sleep to simulate writing
+        usleep(2000000); // Sleep for 2 seconds
+    }
+
+    return NULL;
+}
+
+int main() {
+    pthread_t readers[5], writers[2];
+
+    for (int i = 0; i < 5; i++) {
+        pthread_create(&readers[i], NULL, reader, (void*)i);
+    }
+
+    for (int i = 0; i < 2; i++) {
+        pthread_create(&writers[i], NULL, writer, (void*)i);
+    }
+
+    for (int i = 0; i < 5; i++) {
+        pthread_join(readers[i], NULL);
+    }
+
+    for (int i = 0; i < 2; i++) {
+        pthread_join(writers[i], NULL);
+    }
+
+    return 0;
+}
