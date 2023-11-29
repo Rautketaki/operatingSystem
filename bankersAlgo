@@ -1,0 +1,98 @@
+#include <stdio.h>
+
+// Maximum number of processes and resources
+#define MAX_PROCESSES 5
+#define MAX_RESOURCES 3
+
+// Function to check if the system is in a safe state
+int isSafe(int available[], int max[MAX_PROCESSES][MAX_RESOURCES], int allocation[MAX_PROCESSES][MAX_RESOURCES], int need[MAX_PROCESSES][MAX_RESOURCES], int n, int m) {
+    int work[m];
+    int finish[n];
+
+    // Initialize work and finish arrays
+    for (int i = 0; i < m; i++)
+        work[i] = available[i];
+
+    for (int i = 0; i < n; i++)
+        finish[i] = 0;
+
+    // Find a process to execute
+    int count = 0;
+    while (count < n) {
+        int found = 0;
+        for (int i = 0; i < n; i++) {
+            if (finish[i] == 0) {
+                // Check if the current process can be executed
+                int j;
+                for (j = 0; j < m; j++) {
+                    if (need[i][j] > work[j])
+                        break;
+                }
+
+                // If all resources are available, execute the process
+                if (j == m) {
+                    for (int k = 0; k < m; k++)
+                        work[k] += allocation[i][k];
+
+                    finish[i] = 1;
+                    found = 1;
+                    count++;
+                }
+            }
+        }
+
+        // If no process can be executed, the system is not in a safe state
+        if (found == 0)
+            return 0;
+    }
+
+    // If all processes can be executed, the system is in a safe state
+    return 1;
+}
+
+// Banker's Algorithm function
+int bankersAlgorithm(int available[], int max[MAX_PROCESSES][MAX_RESOURCES], int allocation[MAX_PROCESSES][MAX_RESOURCES], int n, int m) {
+    // Calculate need matrix
+    int need[MAX_PROCESSES][MAX_RESOURCES];
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            need[i][j] = max[i][j] - allocation[i][j];
+
+    // Check if the system is in a safe state
+    if (isSafe(available, max, allocation, need, n, m)) {
+        printf("System is in a safe state. Executing processes...\n");
+        return 1;
+    } else {
+        printf("System is not in a safe state. Deadlock may occur.\n");
+        return 0;
+    }
+}
+
+int main() {
+    int available[MAX_RESOURCES] = {3, 3, 2}; // Available resources
+
+    // Maximum demand of each process
+    int max[MAX_PROCESSES][MAX_RESOURCES] = {
+        {7, 5, 3},
+        {3, 2, 2},
+        {9, 0, 2},
+        {2, 2, 2},
+        {4, 3, 3}
+    };
+
+    // Currently allocated resources for each process
+    int allocation[MAX_PROCESSES][MAX_RESOURCES] = {
+        {0, 1, 0},
+        {2, 0, 0},
+        {3, 0, 2},
+        {2, 1, 1},
+        {0, 0, 2}
+    };
+
+    int n = sizeof(available) / sizeof(available[0]);
+    int m = sizeof(allocation[0]) / sizeof(allocation[0][0]);
+
+    bankersAlgorithm(available, max, allocation, n, m);
+
+    return 0;
+}
