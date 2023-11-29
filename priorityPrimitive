@@ -49,3 +49,77 @@ int main() {
 
     return 0;
 }
+
+//priority non preemptive
+#include <stdio.h>
+
+int main() {
+    int n;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    int PID[n], Priority[n], AT[n], BT[n], CT[n], TAT[n], WT[n], min, t;
+    float AvgTAT = 0, AvgWT = 0, TotalTAT = 0, TotalWT = 0;
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter the PID: ");
+        scanf("%d", &PID[i]);
+
+        printf("Enter Priority: ");
+        scanf("%d", &Priority[i]);
+
+        printf("Enter AT: ");
+        scanf("%d", &AT[i]);
+
+        printf("Enter BT: ");
+        scanf("%d", &BT[i]);
+    }
+
+    // Priority Sorting (using bubble sort)
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (Priority[j] > Priority[j + 1]) {
+                // Swap priority, AT, BT, and PID
+                t = Priority[j];
+                Priority[j] = Priority[j + 1];
+                Priority[j + 1] = t;
+
+                t = AT[j];
+                AT[j] = AT[j + 1];
+                AT[j + 1] = t;
+
+                t = BT[j];
+                BT[j] = BT[j + 1];
+                BT[j + 1] = t;
+
+                t = PID[j];
+                PID[j] = PID[j + 1];
+                PID[j + 1] = t;
+            }
+        }
+    }
+
+    int currentTime = 0;
+    printf("\nPID\t Priority\t AT\t BT\t TAT\t WT\n");
+    for (int i = 0; i < n; i++) {
+        if (AT[i] > currentTime) {
+            currentTime = AT[i];
+        }
+
+        CT[i] = currentTime + BT[i];
+        TAT[i] = CT[i] - AT[i];
+        WT[i] = TAT[i] - BT[i];
+
+        TotalTAT += TAT[i];
+        TotalWT += WT[i];
+
+        printf("%d\t %d\t\t %d\t %d\t %d\t %d\n", PID[i], Priority[i], AT[i], BT[i], TAT[i], WT[i]);
+
+        currentTime += BT[i];
+    }
+
+    printf("\nAverage Waiting time is %.2f\n", TotalWT / n);
+    printf("Average Turn Around Time is %.2f\n", TotalTAT / n);
+
+    return 0;
+}
