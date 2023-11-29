@@ -111,5 +111,80 @@ int main()
 printf("\n\nTotal page fault=%d",fault);
 return 0;
 }
+//optimal
+#include <stdio.h>
+#include <stdlib.h>
 
+#define MAX_FRAMES 3
+
+// Function to find the optimal page to replace
+int findOptimalPage(int pages[], int n, int frames[], int current) {
+    int index = -1;
+    int farthest = -1;
+
+    for (int i = 0; i < MAX_FRAMES; i++) {
+        int j;
+        for (j = current + 1; j < n; j++) {
+            if (frames[i] == pages[j]) {
+                if (j > farthest) {
+                    farthest = j;
+                    index = i;
+                }
+                break;
+            }
+        }
+
+        // If the page is not referenced in the future, replace it
+        if (j == n)
+            return i;
+    }
+
+    return (index == -1) ? 0 : index;
+}
+
+// Function to simulate Optimal Page Replacement
+void optimalPageReplacement(int pages[], int n) {
+    int frames[MAX_FRAMES];
+    int pageFaults = 0;
+
+    for (int i = 0; i < MAX_FRAMES; i++)
+        frames[i] = -1; // Initialize frames to -1 (indicating an empty frame)
+
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+
+        // Check if the page is already in a frame
+        int pageExists = 0;
+        for (int j = 0; j < MAX_FRAMES; j++) {
+            if (frames[j] == page) {
+                pageExists = 1;
+                break;
+            }
+        }
+
+        // If the page is not in a frame, replace the page
+        if (!pageExists) {
+            int replacementIndex = findOptimalPage(pages, n, frames, i);
+            frames[replacementIndex] = page;
+            pageFaults++;
+        }
+
+        // Display the current state of frames
+        printf("Frames: ");
+        for (int j = 0; j < MAX_FRAMES; j++)
+            printf("%d ", (frames[j] == -1) ? -1 : frames[j]);
+        printf("\n");
+    }
+
+    printf("Total Page Faults: %d\n", pageFaults);
+}
+
+int main() {
+    int pages[] = {1, 3, 0, 3, 5, 6, 3};
+    int n = sizeof(pages) / sizeof(pages[0]);
+
+    optimalPageReplacement(pages, n);
+
+    return 0;
+}
 
