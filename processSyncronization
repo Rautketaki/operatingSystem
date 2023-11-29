@@ -52,3 +52,117 @@ void * philosopher(void * num)
 	sem_post(&room);
   
 }
+
+
+//semaphhore
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+
+#define BUFFER_SIZE 5
+
+int buffer[BUFFER_SIZE];
+sem_t empty, full;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void* producer(void* arg) {
+    int item = (int)arg;
+
+    sem_wait(&empty);
+    pthread_mutex_lock(&mutex);
+
+    // Produce item
+    printf("Producer produced item %d\n", item);
+
+    pthread_mutex_unlock(&mutex);
+    sem_post(&full);
+
+    return NULL;
+}
+
+void* consumer(void* arg) {
+    int item;
+
+    sem_wait(&full);
+    pthread_mutex_lock(&mutex);
+
+    // Consume item
+    printf("Consumer consumed item %d\n", buffer[item]);
+
+    pthread_mutex_unlock(&mutex);
+    sem_post(&empty);
+
+    return NULL;
+}
+
+int main() {
+    pthread_t producers[5], consumers[5];
+    sem_init(&empty, 0, BUFFER_SIZE);
+    sem_init(&full, 0, 0);
+
+    for (int i = 0; i < 5; i++) {
+        pthread_create(&producers[i], NULL, producer, (void*)i);
+        pthread_create(&consumers[i], NULL, consumer, NULL);
+    }
+
+    for (int i = 0; i < 5; i++) {
+        pthread_join(producers[i], NULL);
+        pthread_join(consumers[i], NULL);
+    }
+
+    sem_destroy(&empty);
+    sem_destroy(&full);
+
+    return 0;
+}
+//mutex
+#include <stdio.h>
+#include <pthread.h>
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+int readerCount = 0;
+
+void* reader(void* arg) {
+    pthread_mutex_lock(&mutex);
+    readerCount++;
+    if (readerCount == 1) {
+        // First reader, lock the resource
+        printf("Reader %d is reading\n", (int)arg);
+    }
+    pthread_mutex_unlock(&mutex);
+
+    // Reading
+
+    pthread_mutex_lock(&mutex);
+    readerCount--;
+    if (readerCount == 0) {
+        // Last reader, release the resource
+        printf("Reader %d finished reading\n", (int)arg);
+    }
+    pthread_mutex_unlock(&mutex);
+
+    return NULL;
+}
+
+void* writer(void* arg) {
+    // Writing
+    printf("Writer %d is writing\n", (int)arg);
+
+    return NULL;
+}
+
+int main() {
+    pthread_t readers[5], writers[5];
+
+    for (int i = 0; i < 5; i++) {
+        pthread_create(&readers[i], NULL, reader, (void*)i);
+        pthread_create(&writers[i], NULL, writer, (void*)i);
+    }
+
+    for (int i = 0; i < 5; i++) {
+        pthread_join(readers[i], NULL);
+        pthread_join(writers[i], NULL);
+    }
+
+    return 0;
+}
