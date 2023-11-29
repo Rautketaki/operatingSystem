@@ -1,0 +1,17 @@
+#!/bin/bash
+echo "Enter operator + -/ * "
+read op
+echo "Enter 2 numbers"
+read a b
+case $op in
+    +) result=$(($a+$b))
+       ;;
+    -)result=$(($a-$b))
+      ;;
+    *)result=$(($a * $b))
+     ;;
+    /)result=$(($a / $b))
+    ;;
+esac
+echo "$result"
+fi
